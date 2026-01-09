@@ -1,0 +1,160 @@
+Vehicle Rental System – Project Description
+1. PROJECT OVERVIEW
+
+Project Title: Vehicle Rental System
+Tech Stack: MERN (MongoDB, Express, React, Node.js)
+
+2. PROBLEM STATEMENT
+
+Currently, most small vehicle rental services manage bookings manually or through phone calls.
+This leads to:
+
+No real-time vehicle availability information
+
+Booking conflicts and human errors
+
+Difficulty in managing customer and vehicle records
+
+Time-consuming paperwork and poor tracking of rentals
+
+Customers must visit or call the rental office to check availability and confirm bookings.
+
+3. PROPOSED SOLUTION
+
+A web-based application where:
+
+Users can view available vehicles online
+
+Users can book vehicles for a selected date and duration
+
+Admin and Fleet Manager can manage vehicles and bookings
+
+The system updates vehicle availability in real-time
+
+All data is stored securely in a centralized database
+
+4. USER ROLES & PERMISSIONS
+A. User (Customer):
+
+Can Register and Login
+
+Can View available vehicles
+
+Can Search and filter vehicles
+
+Can Book a vehicle
+
+Can View "My Bookings" and booking status
+
+B. Admin:
+
+Can Login to secure Admin Dashboard
+
+Can Add / Edit / Delete vehicles
+
+Can Manage users
+
+Can View and manage all bookings
+
+Can Generate reports
+
+C. Fleet Manager:
+
+Can View vehicle list
+
+Can Update vehicle availability
+
+Can Mark vehicles as "Under Maintenance" or "Available"
+
+Can Update vehicle condition/status
+
+D. Auditor:
+
+Can Login (Read-only access)
+
+Can View booking reports
+
+Can View revenue and usage reports
+
+Cannot modify any data
+
+5. DATABASE STRUCTURE (Schemas)
+A. User Schema:
+
+Name (String)
+
+Email (String, Unique)
+
+Password (Hashed)
+
+Role (String: 'admin', 'user', 'fleetManager', 'auditor')
+
+B. Vehicle Schema:
+
+VehicleName (String)
+
+Category (String: Car, Bike, etc.)
+
+PricePerDay (Number)
+
+ImageURL (String)
+
+IsAvailable (Boolean)
+
+ConditionStatus (String: 'Good', 'Maintenance')
+
+C. Booking Schema:
+
+UserID (Reference to User)
+
+VehicleID (Reference to Vehicle)
+
+FromDate (Date)
+
+ToDate (Date)
+
+TotalAmount (Number)
+
+Status (String: 'Pending', 'Approved', 'Completed', 'Cancelled')
+
+CreatedAt (Timestamp)
+
+6. FEATURE WORKFLOW (The "User Journey")
+
+Login: User logs in and lands on the "Vehicle Listing Page".
+
+Browse: User sees list of available vehicles (fetched from DB).
+
+Book: User clicks "Book Now" on a vehicle.
+
+Database: System creates a new "Booking" document with status 'Pending'.
+
+Admin View: Admin logs in and sees the new booking request.
+
+Approval: Admin approves the booking.
+
+Update: Vehicle availability is updated in the system.
+
+User: User sees booking status as "Approved".
+
+7. API ENDPOINTS (The URL Rules)
+
+POST /api/auth/register -> Register new user
+
+POST /api/auth/login -> Login user
+
+GET /api/vehicles -> Get list of vehicles
+
+POST /api/vehicles -> Add new vehicle (Admin)
+
+PUT /api/vehicles/:id -> Update vehicle (Admin/Fleet Manager)
+
+DELETE /api/vehicles/:id -> Delete vehicle (Admin)
+
+POST /api/bookings -> Create new booking
+
+GET /api/bookings/my -> Get user's bookings
+
+GET /api/bookings -> Get all bookings (Admin)
+
+PUT /api/bookings/:id/status -> Update booking status
