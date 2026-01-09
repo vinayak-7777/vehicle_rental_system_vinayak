@@ -6,6 +6,8 @@ const errorHandler = require('./middleware/errorHandler');
 
 // Routes
 const authRoutes = require('./routes/auth');
+const vehicleRoutes = require('./routes/vehicles');
+const bookingRoutes = require('./routes/bookings');
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.get('/', (_req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
