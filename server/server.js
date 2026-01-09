@@ -4,6 +4,9 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
+// Routes
+const authRoutes = require('./routes/auth');
+
 dotenv.config();
 
 const app = express();
@@ -11,9 +14,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Test route
 app.get('/', (_req, res) => {
   res.json({ message: 'API is running' });
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
