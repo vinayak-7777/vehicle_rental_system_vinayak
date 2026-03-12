@@ -6,6 +6,8 @@ const bookingSchema = new mongoose.Schema(
     vehicleID: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
     fromDate: { type: Date, required: true },
     toDate: { type: Date, required: true },
+    fromDateTime: { type: Date, required: true },
+    toDateTime: { type: Date, required: true },
     totalAmount: { type: Number, required: true, min: 0 },
     status: { type: String, enum: ['Pending', 'Approved', 'Completed', 'Cancelled'], default: 'Pending' },
   },

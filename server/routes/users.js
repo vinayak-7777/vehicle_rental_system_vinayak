@@ -3,8 +3,9 @@ const router = express.Router();
 const { getAllUsers, updateUserRole, deleteUser } = require('../controllers/userController');
 const { auth, authorize } = require('../middleware/auth');
 
-// All routes require Admin role
-router.get('/', auth, authorize('admin'), getAllUsers);
+// Get all users - Admin and Auditor (read-only for auditor)
+router.get('/', auth, authorize('admin', 'auditor'), getAllUsers);
+// Update and delete - Admin only
 router.put('/:id/role', auth, authorize('admin'), updateUserRole);
 router.delete('/:id', auth, authorize('admin'), deleteUser);
 

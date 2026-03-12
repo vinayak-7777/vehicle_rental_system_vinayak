@@ -16,6 +16,19 @@ const auth = (req, res, next) => {
   }
 };
 
+// Optional auth: if token exists and is valid, sets req.user; otherwise continues unauthenticated
+const optionalAuth = (req, _res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return next();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    req.user = decoded;
+    return next();
+  } catch (_err) {
+    return next();
+  }
+};
+
 // Role-based authorization middleware
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -31,5 +44,5 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { auth, authorize };
+module.exports = { auth, optionalAuth, authorize };
 

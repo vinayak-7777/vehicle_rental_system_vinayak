@@ -1,5 +1,7 @@
 const Vehicle = require('../models/Vehicle');
 
+const isAdminLike = (role) => role === 'admin' || role === 'auditor';
+
 // @desc    Get all vehicles (with optional filters)
 // @route   GET /api/vehicles
 // @access  Public
@@ -18,6 +20,26 @@ const getVehicles = async (req, res, next) => {
       query.isAvailable = available === 'true';
     }
 
+    // Listing visibility rules:
+    // - Public/user: only approved (or missing listingStatus for backward compatibility)
+    // - Fleet manager: approved + their own pending/rejected submissions
+    // - Admin/Auditor: all vehicles
+    const role = req.user?.role;
+    if (!role || role === 'user') {
+      query.$or = [{ listingStatus: 'Approved' }, { listingStatus: { $exists: false } }];
+    } else if (role === 'fleetManager') {
+      query.$or = [
+        { listingStatus: 'Approved' },
+        { listingStatus: { $exists: false } },
+        { createdBy: req.user.userId },
+      ];
+    } else if (isAdminLike(role)) {
+      // no extra filter
+    } else {
+      // other roles default to public visibility
+      query.$or = [{ listingStatus: 'Approved' }, { listingStatus: { $exists: false } }];
+    }
+
     const vehicles = await Vehicle.find(query).sort({ createdAt: -1 });
 
     res.json({ success: true, data: vehicles });
@@ -34,6 +56,17 @@ const getVehicleById = async (req, res, next) => {
     const vehicle = await Vehicle.findById(req.params.id);
 
     if (!vehicle) {
+      return res.status(404).json({ success: false, message: 'Vehicle not found' });
+    }
+
+    const role = req.user?.role;
+    const listingStatus = vehicle.listingStatus;
+    const isApprovedOrLegacy = listingStatus === 'Approved' || listingStatus === undefined;
+    const canSeeUnapproved =
+      isAdminLike(role) ||
+      (role === 'fleetManager' && vehicle.createdBy && String(vehicle.createdBy) === String(req.user?.userId));
+
+    if (!isApprovedOrLegacy && !canSeeUnapproved) {
       return res.status(404).json({ success: false, message: 'Vehicle not found' });
     }
 
@@ -57,6 +90,9 @@ const createVehicle = async (req, res, next) => {
       });
     }
 
+    const role = req.user?.role;
+    const isAdmin = role === 'admin';
+
     const vehicle = await Vehicle.create({
       vehicleName,
       category,
@@ -64,6 +100,10 @@ const createVehicle = async (req, res, next) => {
       imageURL: imageURL || '',
       isAvailable: isAvailable !== undefined ? isAvailable : true,
       conditionStatus: conditionStatus || 'Good',
+      createdBy: req.user?.userId,
+      listingStatus: isAdmin ? 'Approved' : 'Pending',
+      approvedBy: isAdmin ? req.user?.userId : undefined,
+      approvedAt: isAdmin ? new Date() : undefined,
     });
 
     res.status(201).json({ success: true, data: vehicle });
@@ -77,7 +117,15 @@ const createVehicle = async (req, res, next) => {
 // @access  Private (Admin, Fleet Manager)
 const updateVehicle = async (req, res, next) => {
   try {
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    // Fleet managers should not self-approve/list by editing fields directly
+    if (req.user?.role === 'fleetManager') {
+      delete updates.listingStatus;
+      delete updates.approvedBy;
+      delete updates.approvedAt;
+      delete updates.createdBy;
+    }
 
     const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, updates, {
       new: true,
@@ -89,6 +137,27 @@ const updateVehicle = async (req, res, next) => {
     }
 
     res.json({ success: true, data: vehicle });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin approves a pending vehicle listing
+// @route   PUT /api/vehicles/:id/approve
+// @access  Private (Admin)
+const approveVehicle = async (req, res, next) => {
+  try {
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: 'Vehicle not found' });
+    }
+
+    vehicle.listingStatus = 'Approved';
+    vehicle.approvedBy = req.user.userId;
+    vehicle.approvedAt = new Date();
+    await vehicle.save();
+
+    res.json({ success: true, data: vehicle, message: 'Vehicle approved and listed' });
   } catch (error) {
     next(error);
   }
@@ -116,6 +185,7 @@ module.exports = {
   getVehicleById,
   createVehicle,
   updateVehicle,
+  approveVehicle,
   deleteVehicle,
 };
 

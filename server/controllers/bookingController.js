@@ -1,61 +1,97 @@
 const Booking = require('../models/Booking');
 const Vehicle = require('../models/Vehicle');
+const Payment = require('../models/Payment');
 
 // Helper to update vehicle availability based on booking status
 const updateVehicleAvailability = async (vehicleID, status) => {
-  // When booking is Approved -> mark vehicle unavailable
-  // When booking is Completed or Cancelled -> mark vehicle available
   if (status === 'Approved') {
     await Vehicle.findByIdAndUpdate(vehicleID, { isAvailable: false });
   }
-
   if (status === 'Completed' || status === 'Cancelled') {
     await Vehicle.findByIdAndUpdate(vehicleID, { isAvailable: true });
   }
 };
 
-// @desc    Create new booking
+// Build datetime from date string and time string (HH:mm)
+const buildDateTime = (dateStr, timeStr) => {
+  if (!dateStr || !timeStr) return null;
+  const d = new Date(dateStr + 'T' + timeStr + ':00');
+  return isNaN(d.getTime()) ? null : d;
+};
+
+// Calculate total amount: duration in days (ceiling) * pricePerDay, minimum 1 day
+const calculateTotalAmount = (fromDateTime, toDateTime, pricePerDay) => {
+  const durationMs = new Date(toDateTime) - new Date(fromDateTime);
+  const durationDays = Math.max(1, Math.ceil(durationMs / (24 * 60 * 60 * 1000)));
+  return durationDays * pricePerDay;
+};
+
+// @desc    Create new booking (fromDate, fromTime, toDate, toTime; totalAmount calculated on server)
 // @route   POST /api/bookings
 // @access  Private (User)
 const createBooking = async (req, res, next) => {
   try {
-    const { vehicleID, fromDate, toDate, totalAmount } = req.body;
+    const { vehicleID, fromDate, fromTime, toDate, toTime } = req.body;
 
-    if (!vehicleID || !fromDate || !toDate || totalAmount === undefined) {
+    if (!vehicleID || !fromDate || !fromTime || !toDate || !toTime) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide vehicleID, fromDate, toDate, and totalAmount',
+        message: 'Please provide vehicleID, fromDate, fromTime, toDate, and toTime',
       });
     }
 
-    // Ensure vehicle exists and is available
     const vehicle = await Vehicle.findById(vehicleID);
     if (!vehicle) {
       return res.status(404).json({ success: false, message: 'Vehicle not found' });
     }
-
     if (!vehicle.isAvailable) {
       return res.status(400).json({ success: false, message: 'Vehicle is not available' });
     }
 
-    // Simple date validation (fromDate should be before toDate)
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
+    const fromDateTime = buildDateTime(fromDate, fromTime);
+    const toDateTime = buildDateTime(toDate, toTime);
 
-    if (isNaN(from.getTime()) || isNaN(to.getTime()) || from >= to) {
+    if (!fromDateTime || !toDateTime) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid dates. fromDate should be before toDate',
+        message: 'Invalid date or time format. Use date (YYYY-MM-DD) and time (HH:mm).',
       });
     }
+
+    if (fromDateTime >= toDateTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'From date & time must be before To date & time',
+      });
+    }
+
+    const now = new Date();
+    if (fromDateTime < now) {
+      return res.status(400).json({
+        success: false,
+        message: 'From date & time cannot be in the past',
+      });
+    }
+
+    const totalAmount = calculateTotalAmount(fromDateTime, toDateTime, vehicle.pricePerDay);
+    const fromDateOnly = new Date(fromDate);
+    const toDateOnly = new Date(toDate);
 
     const booking = await Booking.create({
       userID: req.user.userId,
       vehicleID,
-      fromDate: from,
-      toDate: to,
+      fromDate: fromDateOnly,
+      toDate: toDateOnly,
+      fromDateTime,
+      toDateTime,
       totalAmount,
       status: 'Pending',
+    });
+
+    await Payment.create({
+      bookingID: booking._id,
+      totalAmount,
+      status: 'pending',
     });
 
     res.status(201).json({ success: true, data: booking });
@@ -125,10 +161,81 @@ const updateBookingStatus = async (req, res, next) => {
     booking.status = status;
     await booking.save();
 
-    // Update vehicle availability based on new status
     await updateVehicleAvailability(booking.vehicleID, status);
 
     res.json({ success: true, data: booking });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Cancellation: user can cancel only up to 5 minutes before the booked start time (fromDateTime)
+const CANCELLATION_MINUTES = 5;
+
+// @desc    User cancels own booking (only if > 5 min before start)
+// @route   POST /api/bookings/:id/cancel
+// @access  Private (booking owner)
+const cancelBooking = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (booking.userID.toString() !== req.user.userId) {
+      return res.status(403).json({ success: false, message: 'You can only cancel your own booking' });
+    }
+    if (booking.status === 'Cancelled') {
+      return res.status(400).json({ success: false, message: 'Booking is already cancelled' });
+    }
+
+    const fromDateTime = new Date(booking.fromDateTime);
+    const cutoff = new Date(fromDateTime.getTime() - CANCELLATION_MINUTES * 60 * 1000);
+    if (new Date() >= cutoff) {
+      return res.status(400).json({
+        success: false,
+        message: `Cancellation is allowed only up to ${CANCELLATION_MINUTES} minutes before the booked start time. It is too late to cancel.`,
+      });
+    }
+
+    booking.status = 'Cancelled';
+    await booking.save();
+    await updateVehicleAvailability(booking.vehicleID, 'Cancelled');
+
+    res.json({ success: true, data: booking, message: 'Booking cancelled successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    User pays 100% to auditor (simulated payment)
+// @route   POST /api/bookings/:id/pay
+// @access  Private (booking owner)
+const payBooking = async (req, res, next) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate('vehicleID');
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (booking.userID.toString() !== req.user.userId) {
+      return res.status(403).json({ success: false, message: 'You can only pay for your own booking' });
+    }
+    if (booking.status !== 'Approved') {
+      return res.status(400).json({ success: false, message: 'Only approved bookings can be paid' });
+    }
+
+    const payment = await Payment.findOne({ bookingID: booking._id });
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment record not found' });
+    }
+    if (payment.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'This booking has already been paid' });
+    }
+
+    payment.status = 'paid';
+    payment.paidAt = new Date();
+    await payment.save();
+
+    res.json({ success: true, data: payment, message: 'Payment successful (simulated). Amount received by Auditor.' });
   } catch (error) {
     next(error);
   }
@@ -139,6 +246,8 @@ module.exports = {
   getMyBookings,
   getAllBookings,
   updateBookingStatus,
+  cancelBooking,
+  payBooking,
 };
 
 
