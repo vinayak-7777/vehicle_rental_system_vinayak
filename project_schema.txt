@@ -1,0 +1,104 @@
+================================================================================
+VEHICLE RENTAL SYSTEM – DATABASE SCHEMA
+================================================================================
+Database: MongoDB (Mongoose ODM)
+All collections use timestamps: createdAt, updatedAt (auto-added by Mongoose when timestamps: true).
+
+================================================================================
+1. USER (Collection: users)
+================================================================================
+Stores registered users: customers, admin, fleet manager, and auditor.
+
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| Field Name       | Data Type        | Constraints                              | Required | Description                              |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| name             | String           | trim                                     | Yes      | Full name of the user                    |
+| email            | String           | unique, lowercase, trim                  | Yes      | Login email; must be unique              |
+| password         | String           | -                                         | Yes      | Hashed password (e.g. bcrypt)            |
+| role             | String           | enum: 'user','admin','fleetManager',     | No       | User role; default 'user'               |
+|                  |                  | 'auditor'; default: 'user'               |          |                                          |
+| createdAt        | Date             | auto                                      | No       | Record creation time                     |
+| updatedAt        | Date             | auto                                      | No       | Last update time                         |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+
+================================================================================
+2. VEHICLE (Collection: vehicles)
+================================================================================
+Stores vehicle listings; supports listing approval workflow (Fleet submit → Admin approve).
+
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| Field Name       | Data Type        | Constraints                              | Required | Description                              |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| vehicleName      | String           | trim                                     | Yes      | Name of the vehicle                      |
+| category         | String           | trim                                     | Yes      | Category (e.g. Car, Bike, Truck)         |
+| pricePerDay      | Number           | min: 0                                   | Yes      | Rental price per day                     |
+| imageURL         | String           | default: ''                              | No       | URL of vehicle image                     |
+| isAvailable      | Boolean          | default: true                            | No       | Whether vehicle is available for rent    |
+| conditionStatus  | String           | enum: 'Good','Maintenance'; default:     | No       | Current condition                        |
+|                  |                  | 'Good'                                   |          |                                          |
+| listingStatus    | String           | enum: 'Pending','Approved','Rejected';   | No       | Listing approval; default 'Approved'    |
+|                  |                  | default: 'Approved'                      |          |                                          |
+| createdBy        | ObjectId         | ref: 'User'                              | No       | User who submitted (Fleet/Admin)         |
+| approvedBy       | ObjectId         | ref: 'User'                              | No       | Admin who approved listing               |
+| approvedAt       | Date             | -                                         | No       | When listing was approved                |
+| createdAt        | Date             | auto                                      | No       | Record creation time                     |
+| updatedAt        | Date             | auto                                      | No       | Last update time                         |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+
+================================================================================
+3. BOOKING (Collection: bookings)
+================================================================================
+Stores rental bookings; links user, vehicle, dates/times, amount, and status.
+
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| Field Name       | Data Type        | Constraints                              | Required | Description                              |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| userID           | ObjectId         | ref: 'User'                              | Yes      | Customer who made the booking           |
+| vehicleID        | ObjectId         | ref: 'Vehicle'                            | Yes      | Vehicle being rented                     |
+| fromDate         | Date             | -                                         | Yes      | Start date (date part)                   |
+| toDate           | Date             | -                                         | Yes      | End date (date part)                     |
+| fromDateTime     | Date             | -                                         | Yes      | Start date and time (for cancellation   |
+|                  |                  |                                           |          | policy: 5 min before start)              |
+| toDateTime       | Date             | -                                         | Yes      | End date and time                        |
+| totalAmount      | Number           | min: 0                                   | Yes      | Total rental amount                      |
+| status           | String           | enum: 'Pending','Approved','Completed',  | No       | Booking status; default 'Pending'       |
+|                  |                  | 'Cancelled'; default: 'Pending'          |          |                                          |
+| createdAt        | Date             | auto                                      | No       | Record creation time                     |
+| updatedAt        | Date             | auto                                      | No       | Last update time                         |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+
+================================================================================
+4. PAYMENT (Collection: payments)
+================================================================================
+Stores simulated payment per booking: user pays 100%; auditor distributes (5% / 10% / 85%).
+
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| Field Name       | Data Type        | Constraints                              | Required | Description                              |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+| bookingID        | ObjectId         | ref: 'Booking'; unique                   | Yes      | One payment per booking                  |
+| totalAmount      | Number           | min: 0                                   | Yes      | Amount paid (100% by user)               |
+| status           | String           | enum: 'pending','paid','distributed';    | No       | Payment lifecycle; default 'pending'    |
+|                  |                  | default: 'pending'                       |          |                                          |
+| paidAt           | Date             | -                                         | No       | When user paid (simulated)               |
+| distributedAt    | Date             | -                                         | No       | When auditor distributed                 |
+| auditorShare     | Number           | default: 0                               | No       | 5% of totalAmount after distribute      |
+| adminShare       | Number           | default: 0                               | No       | 10% of totalAmount after distribute     |
+| fleetManagerShare| Number           | default: 0                               | No       | 85% of totalAmount after distribute     |
+| createdAt        | Date             | auto                                      | No       | Record creation time                     |
+| updatedAt        | Date             | auto                                      | No       | Last update time                         |
++------------------+------------------+------------------------------------------+----------+------------------------------------------+
+
+================================================================================
+RELATIONSHIPS (REFERENCES)
+================================================================================
+- User       : referenced by Vehicle (createdBy, approvedBy), Booking (userID), and implicitly by Payment flow.
+- Vehicle    : referenced by Booking (vehicleID).
+- Booking    : referenced by Payment (bookingID).
+
+================================================================================
+NOTES
+================================================================================
+- ObjectId: MongoDB 12-byte identifier; ref indicates Mongoose population target.
+- Timestamps (createdAt, updatedAt) are managed by Mongoose when { timestamps: true }.
+- Password is hashed before storage (e.g. bcrypt); never stored in plain text.
+- Payment split: Auditor 5%, Admin 10%, Fleet Manager 85% (applied on distribute).

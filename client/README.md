@@ -1,16 +1,84 @@
-# React + Vite
+# Client - Frontend React Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Setup
 
-Currently, two official plugins are available:
+1. Install dependencies:
+```bash
+npm install
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+2. Start development server:
+```bash
+npm run dev
+```
 
-## React Compiler
+3. Build for production:
+```bash
+npm run build
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Available Scripts
 
-## Expanding the ESLint configuration
+- `npm run dev` - Start development server (usually on port 5173)
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Project Structure
+
+```
+src/
+├── components/        # Reusable components
+│   ├── Navbar.jsx
+│   └── ProtectedRoute.jsx
+├── context/          # React Context
+│   └── AuthContext.jsx
+├── pages/            # Page components
+│   ├── admin/        # Admin pages
+│   ├── FleetManager/ # Fleet Manager pages
+│   ├── Auditor/      # Auditor pages
+│   ├── Login.jsx
+│   ├── Register.jsx
+│   ├── VehicleList.jsx
+│   ├── VehicleDetails.jsx
+│   ├── BookingForm.jsx
+│   └── MyBookings.jsx
+├── utils/            # Utilities
+│   └── api.js        # Axios configuration
+├── App.jsx           # Main app component with routing
+└── main.jsx          # Entry point
+```
+
+## API Configuration
+
+The API base URL is configured in `src/utils/api.js`. Default: `http://localhost:5000/api`
+
+To change the API URL, update:
+```javascript
+baseURL: 'http://localhost:5000/api'
+```
+
+## Authentication
+
+Authentication is handled via React Context (`AuthContext`). The JWT token is stored in `localStorage` and automatically included in API requests.
+
+## Routes
+
+- `/` - Vehicle listing (public)
+- `/login` - Login page
+- `/register` - Registration page
+- `/vehicles/:id` - Vehicle details
+- `/vehicles/:id/book` - Booking form (protected)
+- `/my-bookings` - User's bookings (protected)
+- `/admin/dashboard` - Admin dashboard (admin only)
+- `/admin/vehicles` - Vehicle management (admin only)
+- `/admin/bookings` - Booking management (admin only)
+- `/admin/users` - User management (admin only)
+- `/fleet-manager/dashboard` - Fleet Manager dashboard (fleetManager only)
+- `/auditor/reports` - Auditor reports (auditor only)
+
+## Protected Routes
+
+Routes are protected using the `ProtectedRoute` component which checks:
+- User is authenticated
+- User has the required role (if specified)

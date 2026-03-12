@@ -1,0 +1,368 @@
+# Vehicle Rental System – Data Flow Diagrams (DFD)
+# Use the Mermaid code blocks below in Mermaid-compatible editors (e.g. GitHub, VS Code with Mermaid extension, mermaid.live).
+
+================================================================================
+## DFD Level 0 – Context Diagram (Entire Project)
+================================================================================
+Single process representing the whole system; external entities and main data stores.
+
+```mermaid
+flowchart LR
+    subgraph External_Entities["External Entities"]
+        U((User))
+        A((Admin))
+        F((Fleet Manager))
+        Aud((Auditor))
+    end
+
+    subgraph System["Vehicle Rental System"]
+        P0["0\nVehicle Rental System"]
+    end
+
+    subgraph Data_Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D3[(D3: Bookings)]
+        D4[(D4: Payments)]
+    end
+
+    U -->|"Register, Login, Browse, Book, View Bookings, Pay, Cancel"| P0
+    A -->|"Login, Manage Vehicles/Users/Bookings, Approve, Reports"| P0
+    F -->|"Login, View/Update Vehicles, Submit Vehicles"| P0
+    Aud -->|"Login, View Reports, Distribute Payments"| P0
+
+    P0 -->|"Auth, Listings, Status"| U
+    P0 -->|"Dashboard, Management UI"| A
+    P0 -->|"Fleet UI, Status"| F
+    P0 -->|"Reports, Payment Management"| Aud
+
+    P0 <-->|"Read/Write"| D1
+    P0 <-->|"Read/Write"| D2
+    P0 <-->|"Read/Write"| D3
+    P0 <-->|"Read/Write"| D4
+```
+
+================================================================================
+## DFD Level 1 – Major Subsystems (Entire Project)
+================================================================================
+Level 0 process decomposed into main high-level processes.
+
+```mermaid
+flowchart TB
+    subgraph External["External Entities"]
+        U((User))
+        A((Admin))
+        F((Fleet Manager))
+        Aud((Auditor))
+    end
+
+    subgraph Processes["Level 1 Processes"]
+        P1["1.0\nAuthentication"]
+        P2["2.0\nVehicle Management"]
+        P3["3.0\nBooking Management"]
+        P4["4.0\nPayment Management"]
+        P5["5.0\nReporting"]
+    end
+
+    subgraph Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D3[(D3: Bookings)]
+        D4[(D4: Payments)]
+    end
+
+    U -->|Credentials, Register/Login| P1
+    A -->|Credentials| P1
+    F -->|Credentials| P1
+    Aud -->|Credentials| P1
+    P1 -->|Session/Token| U
+    P1 -->|Session/Token| A
+    P1 -->|Session/Token| F
+    P1 -->|Session/Token| Aud
+    P1 <-->|Verify/Create| D1
+
+    U -->|View, Search, Filter| P2
+    A -->|CRUD, Approve Listings| P2
+    F -->|View, Update, Submit| P2
+    P2 -->|Vehicle List/Details| U
+    P2 -->|Management UI| A
+    P2 -->|Fleet UI| F
+    P2 <-->|Read/Write| D2
+
+    U -->|Create Booking, Cancel, View My Bookings| P3
+    A -->|View All, Update Status| P3
+    Aud -->|View All (Read-only)| P3
+    P3 -->|Booking Confirmation, List| U
+    P3 -->|Booking List, Status| A
+    P3 -->|Booking Data| Aud
+    P3 <-->|Read/Write| D3
+    P3 -->|Availability Update| P2
+
+    U -->|Pay for Booking| P4
+    Aud -->|Distribute Payment| P4
+    A -->|View Transactions| P4
+    F -->|View My Share| P4
+    P4 -->|Payment Status, Receipt| U
+    P4 -->|Distribution UI| Aud
+    P4 -->|Transaction List| A
+    P4 -->|Share (85%)| F
+    P4 <-->|Read/Write| D4
+
+    A -->|Request Reports| P5
+    Aud -->|Request Reports| P5
+    P5 -->|Reports, Stats| A
+    P5 -->|Reports (Read-only)| Aud
+    P5 -->|Read| D1
+    P5 -->|Read| D2
+    P5 -->|Read| D3
+    P5 -->|Read| D4
+```
+
+================================================================================
+## DFD Level 1.1 – User (Customer) Module
+================================================================================
+Data flows for the User role: Register, Login, Browse, Book, My Bookings, Pay, Cancel.
+
+```mermaid
+flowchart TB
+    subgraph External["External Entity"]
+        U((User))
+    end
+
+    subgraph User_Processes["User Module Processes"]
+        P1_1["1.1\nRegister / Login"]
+        P1_2["1.2\nBrowse & Search Vehicles"]
+        P1_3["1.3\nView Vehicle Details"]
+        P1_4["1.4\nCreate Booking"]
+        P1_5["1.5\nView My Bookings"]
+        P1_6["1.6\nPay for Booking"]
+        P1_7["1.7\nCancel Booking"]
+    end
+
+    subgraph Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D3[(D3: Bookings)]
+        D4[(D4: Payments)]
+    end
+
+    U -->|Credentials| P1_1
+    P1_1 <-->|Verify / Create| D1
+    P1_1 -->|Token, Profile| U
+
+    U -->|Filters, Search| P1_2
+    P1_2 -->|Read Approved| D2
+    D2 -->|Vehicle List| P1_2
+    P1_2 -->|List| U
+
+    U -->|Select Vehicle| P1_3
+    P1_3 -->|Read| D2
+    D2 -->|Details| P1_3
+    P1_3 -->|Details, Book Now| U
+
+    U -->|From/To Date & Time, Vehicle ID| P1_4
+    P1_4 -->|Create Pending| D3
+    P1_4 -->|Create Pending Payment| D4
+    P1_4 -->|Availability Check| D2
+    P1_4 -->|Confirmation| U
+
+    U -->|Request| P1_5
+    P1_5 -->|Read by UserID| D3
+    P1_5 -->|Read| D4
+    D3 -->|Bookings| P1_5
+    D4 -->|Payment Status| P1_5
+    P1_5 -->|My Bookings List| U
+
+    U -->|Pay for Approved Booking| P1_6
+    P1_6 -->|Read Booking| D3
+    P1_6 -->|Update Payment (paid)| D4
+    P1_6 -->|Payment Done| U
+
+    U -->|Cancel Request| P1_7
+    P1_7 -->|Read Booking, Check 5-min Rule| D3
+    P1_7 -->|Update Status Cancelled| D3
+    P1_7 -->|Update Availability| D2
+    P1_7 -->|Confirmation| U
+```
+
+================================================================================
+## DFD Level 1.2 – Admin Module
+================================================================================
+Data flows for the Admin role: Login, Dashboard, Vehicles, Users, Bookings, Reports, Approve Listings.
+
+```mermaid
+flowchart TB
+    subgraph External["External Entity"]
+        A((Admin))
+    end
+
+    subgraph Admin_Processes["Admin Module Processes"]
+        P2_1["2.1\nLogin"]
+        P2_2["2.2\nDashboard & Stats"]
+        P2_3["2.3\nVehicle CRUD & Approve Listings"]
+        P2_4["2.4\nUser Management"]
+        P2_5["2.5\nBooking Management"]
+        P2_6["2.6\nReports"]
+        P2_7["2.7\nView Transactions"]
+    end
+
+    subgraph Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D3[(D3: Bookings)]
+        D4[(D4: Payments)]
+    end
+
+    A -->|Credentials| P2_1
+    P2_1 -->|Verify| D1
+    P2_1 -->|Token| A
+
+    A -->|Request Dashboard| P2_2
+    P2_2 -->|Read| D2
+    P2_2 -->|Read| D3
+    P2_2 -->|Read| D1
+    P2_2 -->|Stats, Counts| A
+
+    A -->|Add/Edit/Delete, Approve Pending| P2_3
+    P2_3 <-->|CRUD, Approve| D2
+    P2_3 -->|Management UI| A
+
+    A -->|View/Update Role/Delete| P2_4
+    P2_4 <-->|Read/Update/Delete| D1
+    P2_4 -->|User List| A
+
+    A -->|View All, Update Status| P2_5
+    P2_5 -->|Read/Update Status| D3
+    P2_5 -->|Update Availability| D2
+    P2_5 -->|Booking List, Status| A
+
+    A -->|Request Reports| P2_6
+    P2_6 -->|Read| D1
+    P2_6 -->|Read| D2
+    P2_6 -->|Read| D3
+    P2_6 -->|Reports, Export| A
+
+    A -->|View All Transactions| P2_7
+    P2_7 -->|Read| D4
+    D4 -->|Payment List| P2_7
+    P2_7 -->|Transaction List (Read-only)| A
+```
+
+================================================================================
+## DFD Level 1.3 – Fleet Manager Module
+================================================================================
+Data flows for the Fleet Manager role: Login, View Vehicles, Update Availability/Condition, Submit Vehicle for Approval.
+
+```mermaid
+flowchart TB
+    subgraph External["External Entity"]
+        F((Fleet Manager))
+    end
+
+    subgraph Fleet_Processes["Fleet Manager Module Processes"]
+        P3_1["3.1\nLogin"]
+        P3_2["3.2\nView Vehicle List"]
+        P3_3["3.3\nUpdate Availability"]
+        P3_4["3.4\nUpdate Condition / Status"]
+        P3_5["3.5\nSubmit Vehicle for Approval"]
+        P3_6["3.6\nView Fleet Transactions (My Share)"]
+    end
+
+    subgraph Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D4[(D4: Payments)]
+    end
+
+    F -->|Credentials| P3_1
+    P3_1 -->|Verify| D1
+    P3_1 -->|Token| F
+
+    F -->|Request List| P3_2
+    P3_2 -->|Read (Approved + Own Pending)| D2
+    D2 -->|Vehicle List| P3_2
+    P3_2 -->|Fleet List| F
+
+    F -->|Set Available/Not Available| P3_3
+    P3_3 -->|Update isAvailable| D2
+    P3_3 -->|Confirmation| F
+
+    F -->|Set Good/Maintenance| P3_4
+    P3_4 -->|Update conditionStatus| D2
+    P3_4 -->|Confirmation| F
+
+    F -->|New Vehicle Data| P3_5
+    P3_5 -->|Create (listingStatus: Pending)| D2
+    P3_5 -->|createdBy: Fleet Manager| D2
+    P3_5 -->|Submit Confirmation| F
+
+    F -->|Request Transactions| P3_6
+    P3_6 -->|Read Distributed Payments| D4
+    D4 -->|Fleet Share (85%)| P3_6
+    P3_6 -->|My Share List| F
+```
+
+================================================================================
+## DFD Level 1.4 – Auditor Module
+================================================================================
+Data flows for the Auditor role: Login, View Reports (Read-only), Distribute Payments, Manage Booking Status.
+
+```mermaid
+flowchart TB
+    subgraph External["External Entity"]
+        Aud((Auditor))
+    end
+
+    subgraph Auditor_Processes["Auditor Module Processes"]
+        P4_1["4.1\nLogin"]
+        P4_2["4.2\nView Booking Reports (Read-only)"]
+        P4_3["4.3\nView Revenue & Usage Reports"]
+        P4_4["4.4\nPayment Management - Distribute"]
+        P4_5["4.5\nManage Bookings (Status / Cancel)"]
+    end
+
+    subgraph Stores["Data Stores"]
+        D1[(D1: Users)]
+        D2[(D2: Vehicles)]
+        D3[(D3: Bookings)]
+        D4[(D4: Payments)]
+    end
+
+    Aud -->|Credentials| P4_1
+    P4_1 -->|Verify| D1
+    P4_1 -->|Token| Aud
+
+    Aud -->|Request Reports| P4_2
+    P4_2 -->|Read Only| D3
+    P4_2 -->|Read Only| D2
+    D3 -->|Booking Data| P4_2
+    D2 -->|Vehicle Data| P4_2
+    P4_2 -->|Reports| Aud
+
+    Aud -->|Request Revenue/Usage| P4_3
+    P4_3 -->|Read| D3
+    P4_3 -->|Read| D2
+    P4_3 -->|Read| D4
+    P4_3 -->|Aggregated Reports| Aud
+
+    Aud -->|Distribute Paid Payment| P4_4
+    P4_4 -->|Read Payment (status: paid)| D4
+    P4_4 -->|Update Distributed, Shares 5%/10%/85%| D4
+    P4_4 -->|Confirmation| Aud
+
+    Aud -->|Update Booking Status / Cancel| P4_5
+    P4_5 -->|Read/Update Status| D3
+    P4_5 -->|Update Availability| D2
+    P4_5 -->|Status Updated| Aud
+```
+
+================================================================================
+## Notes for Using This File
+================================================================================
+- Copy each Mermaid code block (between the triple backticks) into:
+  - GitHub Markdown (renders Mermaid)
+  - VS Code with a Mermaid extension
+  - https://mermaid.live
+- Level 0: One system process; all roles and main data stores.
+- Level 1: Same scope as Level 0, split into Authentication, Vehicle, Booking, Payment, Reporting.
+- Level 1.1–1.4: One diagram per role (User, Admin, Fleet Manager, Auditor) with processes and data stores from project_spec.txt and the implemented system (including Payment and listing approval).

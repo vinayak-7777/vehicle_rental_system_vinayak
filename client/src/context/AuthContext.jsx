@@ -9,7 +9,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!token) return
+    if (!token) {
+      setUser(null)
+      return
+    }
 
     const fetchMe = async () => {
       try {
@@ -17,7 +20,9 @@ export function AuthProvider({ children }) {
         const res = await api.get('/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         })
-        setUser(res.data.data.user)
+        if (res.data.data && res.data.data.user) {
+          setUser(res.data.data.user)
+        }
       } catch {
         setUser(null)
         setToken('')
@@ -34,6 +39,8 @@ export function AuthProvider({ children }) {
     setToken(newToken)
     setUser(userData)
     localStorage.setItem('token', newToken)
+    // Don't fetch /auth/me immediately after login since we already have user data
+    // The useEffect will handle it on next render if needed
   }
 
   const logout = () => {

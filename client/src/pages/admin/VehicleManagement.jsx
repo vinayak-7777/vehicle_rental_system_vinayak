@@ -9,6 +9,7 @@ export default function VehicleManagement() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [actionLoading, setActionLoading] = useState(null)
   const [formData, setFormData] = useState({
     vehicleName: '',
     category: '',
@@ -93,6 +94,23 @@ export default function VehicleManagement() {
       fetchVehicles()
     } catch (err) {
       alert('Error: ' + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleApprove = async (vehicleId) => {
+    setActionLoading(vehicleId)
+    try {
+      await api.put(
+        `/vehicles/${vehicleId}/approve`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      alert('Vehicle approved and listed!')
+      fetchVehicles()
+    } catch (err) {
+      alert('Error approving vehicle: ' + (err.response?.data?.message || err.message))
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -190,7 +208,17 @@ export default function VehicleManagement() {
             <p><strong>Price:</strong> ${vehicle.pricePerDay}/day</p>
             <p><strong>Status:</strong> {vehicle.isAvailable ? 'Available' : 'Not Available'}</p>
             <p><strong>Condition:</strong> {vehicle.conditionStatus}</p>
+            <p><strong>Listing:</strong> {vehicle.listingStatus || 'Approved (legacy)'}</p>
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+              {vehicle.listingStatus === 'Pending' && (
+                <button
+                  onClick={() => handleApprove(vehicle._id)}
+                  disabled={actionLoading === vehicle._id}
+                  style={{ padding: '0.25rem 0.5rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  {actionLoading === vehicle._id ? 'Approving...' : 'Approve'}
+                </button>
+              )}
               <button onClick={() => handleEdit(vehicle)} style={{ padding: '0.25rem 0.5rem', background: '#ffc107', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 Edit
               </button>
