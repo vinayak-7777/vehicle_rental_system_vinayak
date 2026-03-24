@@ -12,6 +12,7 @@ npm install
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/vehicle-rental
 JWT_SECRET=your-super-secret-jwt-key-12345
+FRONTEND_URL=http://localhost:5173
 ```
 
 3. Seed sample data (optional):

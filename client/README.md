@@ -55,7 +55,12 @@ The API base URL is configured in `src/utils/api.js`. Default: `http://localhost
 
 To change the API URL, update:
 ```javascript
-baseURL: 'http://localhost:5000/api'
+baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api'
+```
+
+For deployment (e.g. Vercel), set a Vite environment variable:
+```env
+VITE_API_URL=https://your-backend.onrender.com
 ```
 
 ## Authentication

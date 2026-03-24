@@ -96,7 +96,7 @@ export function Register() {
         </form>
         <p style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.875rem', color: '#6B7280' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#5B3DF5', fontWeight: '600', textDecoration: 'none' }}>Login</Link>
+          <Link to="/login" style={{ color: '#F5A623', fontWeight: '600', textDecoration: 'none' }}>Login</Link>
         </p>
       </div>
     </div>

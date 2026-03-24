@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Vehicle = require('../models/Vehicle');
+const Payment = require('../models/Payment');
 const connectDB = require('../config/db');
 
 // Sample vehicles data
@@ -116,6 +117,7 @@ const seedData = async () => {
     // Clear existing data (optional - comment out if you want to keep existing data)
     await User.deleteMany({});
     await Vehicle.deleteMany({});
+    await Payment.deleteMany({});
     console.log('Cleared existing data');
 
     // Hash passwords and create users

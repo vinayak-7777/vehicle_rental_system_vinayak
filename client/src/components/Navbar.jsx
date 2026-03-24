@@ -3,14 +3,15 @@ import { useAuth } from '../context/AuthContext'
 
 const navLinkStyle = (isActive) => ({
   textDecoration: 'none',
-  color: isActive ? '#5B3DF5' : '#374151',
-  fontWeight: isActive ? '600' : '500',
+  color: isActive ? '#F5A623' : 'rgba(255,255,255,0.85)',
+  fontWeight: isActive ? '600' : '400',
   fontSize: '0.9rem',
-  padding: '0.4rem 0.75rem',
-  borderRadius: '6px',
-  transition: 'color 0.2s, background 0.2s',
-  background: isActive ? 'rgba(91,61,245,0.08)' : 'transparent',
+  padding: '0.5rem 0.75rem',
+  borderBottom: isActive ? '2px solid #F5A623' : '2px solid transparent',
+  transition: 'color 0.2s, border-color 0.2s',
+  background: 'transparent',
   whiteSpace: 'nowrap',
+  letterSpacing: '0.3px',
 })
 
 export function Navbar() {
@@ -31,9 +32,9 @@ export function Navbar() {
 
   return (
     <nav style={{
-      padding: '0.75rem 2rem',
-      background: '#ffffff',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+      padding: '0 2rem',
+      background: '#1B3A7A',
+      boxShadow: '0 2px 16px rgba(13,30,74,0.4)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -42,11 +43,13 @@ export function Navbar() {
       position: 'sticky',
       top: 0,
       zIndex: 100,
+      minHeight: '60px',
     }}>
       {/* Logo */}
-      <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.4rem' }}>🚗</span>
-<span style={{ fontWeight: '700', fontSize: '1.1rem', color: '#1a1a2e' }}>Vehicle Rental System</span>
+      <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
+        <span style={{ fontSize: '1.5rem' }}>🚗</span>
+        <span style={{ fontWeight: '800', fontSize: '1.15rem', color: '#F5A623', letterSpacing: '1px', textTransform: 'uppercase' }}>Vehicle Rental</span>
+        <span style={{ fontWeight: '400', fontSize: '1.15rem', color: 'rgba(255,255,255,0.9)', letterSpacing: '0.5px' }}>System</span>
       </Link>
 
       {/* Nav Links */}
@@ -60,8 +63,8 @@ export function Navbar() {
 
             {isAdmin && (
               <>
-                <span style={{ color: '#E5E7EB', margin: '0 0.25rem' }}>|</span>
-                <Link to="/admin/dashboard" style={{ ...navLinkStyle(isActive('/admin/dashboard')), color: isActive('/admin/dashboard') ? '#5B3DF5' : '#dc3545' }}>
+                <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 0.25rem' }}>|</span>
+                <Link to="/admin/dashboard" style={{ ...navLinkStyle(isActive('/admin/dashboard')), color: isActive('/admin/dashboard') ? '#F5A623' : '#ffaaaa' }}>
                   Admin
                 </Link>
                 <Link to="/admin/vehicles" style={navLinkStyle(isActive('/admin/vehicles'))}>Vehicles</Link>
@@ -74,8 +77,8 @@ export function Navbar() {
 
             {isFleetManager && (
               <>
-                <span style={{ color: '#E5E7EB', margin: '0 0.25rem' }}>|</span>
-                <Link to="/fleet-manager/dashboard" style={{ ...navLinkStyle(isActive('/fleet-manager/dashboard')), color: isActive('/fleet-manager/dashboard') ? '#5B3DF5' : '#28a745' }}>
+                <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 0.25rem' }}>|</span>
+                <Link to="/fleet-manager/dashboard" style={{ ...navLinkStyle(isActive('/fleet-manager/dashboard')), color: isActive('/fleet-manager/dashboard') ? '#F5A623' : '#aaffcc' }}>
                   Fleet Dashboard
                 </Link>
                 <Link to="/fleet-manager/transactions" style={navLinkStyle(isActive('/fleet-manager/transactions'))}>Fleet Transactions</Link>
@@ -84,8 +87,8 @@ export function Navbar() {
 
             {isAuditor && (
               <>
-                <span style={{ color: '#E5E7EB', margin: '0 0.25rem' }}>|</span>
-                <Link to="/auditor/reports" style={{ ...navLinkStyle(isActive('/auditor/reports')), color: isActive('/auditor/reports') ? '#5B3DF5' : '#17a2b8' }}>
+                <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 0.25rem' }}>|</span>
+                <Link to="/auditor/reports" style={{ ...navLinkStyle(isActive('/auditor/reports')), color: isActive('/auditor/reports') ? '#F5A623' : '#aaddff' }}>
                   Auditor Reports
                 </Link>
                 <Link to="/auditor/payments" style={navLinkStyle(isActive('/auditor/payments'))}>Payments</Link>
@@ -102,32 +105,34 @@ export function Navbar() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div style={{
                 width: '34px', height: '34px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #5B3DF5, #7C60FF)',
+                background: 'linear-gradient(135deg, #F5A623, #ffcc70)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontWeight: '700', fontSize: '0.85rem',
+                color: '#0D1E4A', fontWeight: '800', fontSize: '0.85rem',
               }}>
                 {user.name?.charAt(0).toUpperCase()}
               </div>
               <div style={{ lineHeight: '1.2' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1a1a2e' }}>{user.name}</div>
-                <div style={{ fontSize: '0.72rem', color: '#6B7280', textTransform: 'capitalize' }}>{user.role}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'white' }}>{user.name}</div>
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize' }}>{user.role}</div>
               </div>
             </div>
             <button
               onClick={handleLogout}
               style={{
                 background: 'transparent',
-                border: '1.5px solid #E5E7EB',
-                borderRadius: '6px',
-                padding: '0.35rem 0.85rem',
-                fontSize: '0.85rem',
-                fontWeight: '500',
-                color: '#374151',
+                border: '1.5px solid rgba(255,255,255,0.4)',
+                borderRadius: '4px',
+                padding: '0.35rem 1rem',
+                fontSize: '0.82rem',
+                fontWeight: '600',
+                color: 'white',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
               }}
-              onMouseEnter={e => { e.target.style.borderColor = '#5B3DF5'; e.target.style.color = '#5B3DF5' }}
-              onMouseLeave={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.color = '#374151' }}
+              onMouseEnter={e => { e.target.style.borderColor = '#F5A623'; e.target.style.color = '#F5A623' }}
+              onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.4)'; e.target.style.color = 'white' }}
             >
               Logout
             </button>
@@ -138,13 +143,15 @@ export function Navbar() {
               to="/login"
               style={{
                 textDecoration: 'none',
-                color: '#5B3DF5',
-                fontWeight: '500',
-                fontSize: '0.9rem',
-                padding: '0.4rem 0.85rem',
-                border: '1.5px solid #5B3DF5',
-                borderRadius: '6px',
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '0.82rem',
+                padding: '0.4rem 1.1rem',
+                border: '1.5px solid rgba(255,255,255,0.5)',
+                borderRadius: '4px',
                 transition: 'all 0.2s',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
               }}
             >
               Login
@@ -153,13 +160,15 @@ export function Navbar() {
               to="/register"
               style={{
                 textDecoration: 'none',
-                color: 'white',
-                fontWeight: '500',
-                fontSize: '0.9rem',
-                padding: '0.4rem 0.85rem',
-                background: '#5B3DF5',
-                borderRadius: '6px',
+                color: '#0D1E4A',
+                fontWeight: '700',
+                fontSize: '0.82rem',
+                padding: '0.4rem 1.1rem',
+                background: '#F5A623',
+                borderRadius: '4px',
                 transition: 'all 0.2s',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
               }}
             >
               Register

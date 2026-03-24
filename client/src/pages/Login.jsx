@@ -79,7 +79,7 @@ export function Login() {
         </form>
         <p style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.875rem', color: '#6B7280' }}>
           Don&apos;t have an account?{' '}
-          <Link to="/register" style={{ color: '#5B3DF5', fontWeight: '600', textDecoration: 'none' }}>Register</Link>
+          <Link to="/register" style={{ color: '#F5A623', fontWeight: '600', textDecoration: 'none' }}>Register</Link>
         </p>
       </div>
     </div>

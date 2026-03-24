@@ -39,7 +39,7 @@ export function VehicleDetails() {
         to="/vehicles"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-          textDecoration: 'none', color: '#5B3DF5', fontWeight: '500',
+          textDecoration: 'none', color: '#1B3A7A', fontWeight: '500',
           fontSize: '0.9rem', marginBottom: '1.5rem',
         }}
       >
@@ -67,7 +67,7 @@ export function VehicleDetails() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1a1a2e' }}>{vehicle.vehicleName}</h1>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#5B3DF5' }}>${vehicle.pricePerDay}</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#F5A623' }}>₹{vehicle.pricePerDay}</div>
               <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>per day</div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export function VehicleDetails() {
             </Link>
           ) : !user ? (
             <div className="alert alert-warning">
-              Please <Link to="/login" style={{ color: '#5B3DF5', fontWeight: '600' }}>login</Link> to book this vehicle.
+              Please <Link to="/login" style={{ color: '#1B3A7A', fontWeight: '600' }}>login</Link> to book this vehicle.
             </div>
           ) : (
             <div className="alert alert-error">

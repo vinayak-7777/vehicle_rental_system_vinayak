@@ -228,8 +228,8 @@ project/
 - Or kill the process using the port
 
 ### CORS Issues
-- Backend has CORS enabled for all origins
-- If issues persist, check `server.js` CORS configuration
+- Backend CORS origin is configurable via `FRONTEND_URL`
+- If issues persist, verify `FRONTEND_URL` matches your Vercel domain and restart the backend
 
 ## 📄 License
 

@@ -1,17 +1,18 @@
 /* Global Styles */
 :root {
-  --primary: #5B3DF5;
-  --primary-hover: #4527E4;
-  --primary-light: rgba(91, 61, 245, 0.1);
-  --orange: #FF9500;
-  --orange-hover: #E08600;
-  --bg: #EEF2F7;
+  --primary: #1B3A7A;
+  --primary-hover: #142D63;
+  --primary-light: rgba(27, 58, 122, 0.1);
+  --navy-dark: #0D1E4A;
+  --orange: #F5A623;
+  --orange-hover: #E09010;
+  --bg: #F5F6FA;
   --white: #FFFFFF;
   --text-dark: #1a1a2e;
   --text-muted: #6B7280;
   --border: #E5E7EB;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
   --radius: 12px;
   --radius-sm: 6px;
 }
@@ -66,7 +67,7 @@ code {
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(91, 61, 245, 0.35);
+  box-shadow: 0 4px 12px rgba(27, 58, 122, 0.4);
 }
 
 .btn-orange {
@@ -332,12 +333,13 @@ code {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 1rem;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
-  background: var(--white);
-  color: var(--text-dark);
-  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #6B7280;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -345,15 +347,16 @@ code {
 }
 
 .vehicle-filter-tab:hover {
-  border-color: var(--primary);
   color: var(--primary);
-  background: var(--primary-light);
+  border-bottom-color: var(--primary);
+  background: transparent;
 }
 
 .vehicle-filter-tab.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
+  background: transparent;
+  color: var(--orange);
+  border-bottom: 3px solid var(--orange);
+  font-weight: 600;
 }
 
 /* Vehicle card grid */
@@ -391,8 +394,50 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+  background: linear-gradient(135deg, #e8ecf8 0%, #d8e0f0 100%);
   font-size: 3rem;
+}
+
+/* Dark navy vehicle deals section */
+.vehicle-section {
+  background: var(--navy-dark);
+  padding: 2.5rem 0;
+  min-height: 200px;
+}
+
+.vehicle-section .vehicle-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.vehicle-section .vehicle-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transform: translateY(-4px);
+}
+
+.vehicle-section .vehicle-feature-badge {
+  background: #f0f4ff;
+}
+
+/* Rent Now button inside vehicle cards */
+.btn-rent {
+  background: var(--navy-dark);
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.btn-rent:hover {
+  background: var(--orange);
+  transform: translateY(-1px);
 }
 
 .vehicle-card-body {
@@ -415,7 +460,7 @@ code {
 .vehicle-card-price {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--orange);
   white-space: nowrap;
 }
 
